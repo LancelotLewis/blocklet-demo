@@ -16,13 +16,15 @@ function Home() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    setUser(session.user);
-  }, []);
+    if (session?.user) {
+      setUser(session.user);
+    }
+  }, [session.user]);
 
-  let infoRows = [];
+  const infoRows = [];
   if (user) {
     infoRows.push({ name: 'User Name', value: user.fullName });
-    infoRows.push({ name: 'Avatar', value: <Avatar alt="" src={user.avatar}></Avatar> });
+    infoRows.push({ name: 'Avatar', value: <Avatar alt="" src={user.avatar} /> });
     infoRows.push({
       name: 'DID',
       value: <DID did={user.did} showQrcode locale="zh" />,
@@ -63,8 +65,8 @@ function Home() {
   }
 
   const refreshUser = async () => {
-    const { data: user } = await api.get('/api/userinfo');
-    setUser({ ...user, callApiAt: new Date() });
+    const { data: apiUser } = await api.get('/api/userinfo');
+    setUser({ ...apiUser, callApiAt: new Date() });
   };
 
   return (
