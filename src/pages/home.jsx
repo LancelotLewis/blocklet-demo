@@ -3,7 +3,7 @@ import InfoRow from '@arcblock/ux/lib/InfoRow';
 import Tag from '@arcblock/ux/lib/Tag';
 import { Footer, Header } from '@blocklet/ui-react';
 import { Icon } from '@iconify/react';
-import { Avatar, Box, Card, CardContent, CardHeader, Container, IconButton, Tooltip } from '@mui/material';
+import { Avatar, Box, Button, Card, CardContent, CardHeader, Container, IconButton, Tooltip } from '@mui/material';
 import { uniqBy } from 'lodash-es';
 import { useEffect, useState } from 'react';
 
@@ -82,48 +82,56 @@ function Home() {
           <CardHeader
             title="User info from session"
             action={
-              <Tooltip title="Refresh userInfo from api">
-                <IconButton aria-label="refresh" onClick={refreshUser}>
-                  <Icon icon="mdi-refresh" />
-                </IconButton>
-              </Tooltip>
+              session?.user ? (
+                <Tooltip title="Refresh userInfo from api">
+                  <IconButton aria-label="refresh" onClick={refreshUser}>
+                    <Icon icon="mdi-refresh" />
+                  </IconButton>
+                </Tooltip>
+              ) : null
             }
           />
           <CardContent>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                '&>div': {
-                  mb: 0,
-                },
-                '.info-row__name': {
-                  fontWeight: 'bold',
-                  color: 'grey.800',
-                },
-              }}>
-              {infoRows.map((row) => {
-                if (row.name === 'DID') {
+            {session?.user ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  '&>div': {
+                    mb: 0,
+                  },
+                  '.info-row__name': {
+                    fontWeight: 'bold',
+                    color: 'grey.800',
+                  },
+                }}>
+                {infoRows.map((row) => {
+                  if (row.name === 'DID') {
+                    return (
+                      <InfoRow
+                        valueComponent="div"
+                        key={row.name}
+                        nameWidth={120}
+                        name={row.name}
+                        nameFormatter={() => 'DID'}>
+                        {row.value}
+                      </InfoRow>
+                    );
+                  }
+
                   return (
-                    <InfoRow
-                      valueComponent="div"
-                      key={row.name}
-                      nameWidth={120}
-                      name={row.name}
-                      nameFormatter={() => 'DID'}>
+                    <InfoRow valueComponent="div" key={row.name} nameWidth={120} name={row.name}>
                       {row.value}
                     </InfoRow>
                   );
-                }
-
-                return (
-                  <InfoRow valueComponent="div" key={row.name} nameWidth={120} name={row.name}>
-                    {row.value}
-                  </InfoRow>
-                );
-              })}
-            </Box>
+                })}
+              </Box>
+            ) : (
+              <Button variant="contained" disableElevation onClick={session.login}>
+                Login to view user info
+              </Button>
+            )}
           </CardContent>
         </Card>
       </Container>
