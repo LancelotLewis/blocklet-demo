@@ -57,6 +57,7 @@
     "@arcblock/ux": "^2.11.41",
     "@blocklet/js-sdk": "^1.16.38",
     "@blocklet/ui-react": "^2.11.41",
+    "@iconify/react": "^5.2.0",
     "@mui/material": "^6.4.5",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@vitejs/plugin-react": "^4.3.4",

@@ -2,28 +2,37 @@ import DID from '@arcblock/ux/lib/DID';
 import InfoRow from '@arcblock/ux/lib/InfoRow';
 import Tag from '@arcblock/ux/lib/Tag';
 import { Footer, Header } from '@blocklet/ui-react';
-import { Avatar, Box, Container } from '@mui/material';
+import { Icon } from '@iconify/react';
+import { Avatar, Box, Card, CardContent, CardHeader, Container, IconButton, Tooltip } from '@mui/material';
 import { uniqBy } from 'lodash-es';
+import { useEffect, useState } from 'react';
 
+import api from '../libs/api';
 import { useSessionContext } from '../libs/session';
 import { formatToDatetime } from '../libs/utils';
 
 function Home() {
   const { session } = useSessionContext();
-  let rows = [];
-  if (session?.user) {
-    rows.push({ name: 'User Name', value: session.user.fullName });
-    rows.push({ name: 'Avatar', value: <Avatar alt="" src={session.user.avatar}></Avatar> });
-    rows.push({
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    setUser(session.user);
+  }, []);
+
+  let infoRows = [];
+  if (user) {
+    infoRows.push({ name: 'User Name', value: user.fullName });
+    infoRows.push({ name: 'Avatar', value: <Avatar alt="" src={user.avatar}></Avatar> });
+    infoRows.push({
       name: 'DID',
-      value: <DID did={session.user.did} showQrcode locale="zh" />,
+      value: <DID did={user.did} showQrcode locale="zh" />,
     });
-    rows.push({ name: 'Email', value: session.user.email });
-    rows.push({
+    infoRows.push({ name: 'Email', value: user.email });
+    infoRows.push({
       name: 'Passports',
-      value: session.user.passports ? (
+      value: user.passports ? (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {uniqBy(session.user.passports, 'name').map((passport) => (
+          {uniqBy(user.passports, 'name').map((passport) => (
             <Tag key={passport.name} type={passport.name === 'owner' ? 'success' : 'primary'}>
               {passport.title}
             </Tag>
@@ -33,19 +42,30 @@ function Home() {
         '--'
       ),
     });
-    rows.push({
+    infoRows.push({
       name: 'Role',
-      value: <Tag type={session.user.role === 'owner' ? 'success' : 'primary'}>{session.user.role}</Tag>,
+      value: <Tag type={user.role === 'owner' ? 'success' : 'primary'}>{user.role}</Tag>,
     });
-    rows.push({
+    infoRows.push({
       name: 'Last Login',
-      value: formatToDatetime(session.user.updatedAt, { locale: 'en' }),
+      value: formatToDatetime(user.updatedAt),
     });
-    rows.push({
+    infoRows.push({
       name: 'Created At',
-      value: formatToDatetime(session.user.createdAt, { locale: 'en' }),
+      value: formatToDatetime(user.createdAt),
     });
+    if (user.callApiAt) {
+      infoRows.push({
+        name: 'Call API At',
+        value: formatToDatetime(user.callApiAt),
+      });
+    }
   }
+
+  const refreshUser = async () => {
+    const { data: user } = await api.get('/api/userinfo');
+    setUser({ ...user, callApiAt: new Date() });
+  };
 
   return (
     <Box
@@ -56,40 +76,54 @@ function Home() {
       }}>
       <Header />
       <Container sx={{ flex: 1, py: 4 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            '&>div': {
-              mb: 0,
-            },
-            '.info-row__name': {
-              fontWeight: 'bold',
-              color: 'grey.800',
-            },
-          }}>
-          {rows.map((row) => {
-            if (row.name === 'DID') {
-              return (
-                <InfoRow
-                  valueComponent="div"
-                  key={row.name}
-                  nameWidth={120}
-                  name={row.name}
-                  nameFormatter={() => 'DID'}>
-                  {row.value}
-                </InfoRow>
-              );
+        <Card variant="outlined">
+          <CardHeader
+            title="User info from session"
+            action={
+              <Tooltip title="Refresh userInfo from api">
+                <IconButton aria-label="refresh" onClick={refreshUser}>
+                  <Icon icon="mdi-refresh" />
+                </IconButton>
+              </Tooltip>
             }
+          />
+          <CardContent>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                '&>div': {
+                  mb: 0,
+                },
+                '.info-row__name': {
+                  fontWeight: 'bold',
+                  color: 'grey.800',
+                },
+              }}>
+              {infoRows.map((row) => {
+                if (row.name === 'DID') {
+                  return (
+                    <InfoRow
+                      valueComponent="div"
+                      key={row.name}
+                      nameWidth={120}
+                      name={row.name}
+                      nameFormatter={() => 'DID'}>
+                      {row.value}
+                    </InfoRow>
+                  );
+                }
 
-            return (
-              <InfoRow valueComponent="div" key={row.name} nameWidth={120} name={row.name}>
-                {row.value}
-              </InfoRow>
-            );
-          })}
-        </Box>
+                return (
+                  <InfoRow valueComponent="div" key={row.name} nameWidth={120} name={row.name}>
+                    {row.value}
+                  </InfoRow>
+                );
+              })}
+            </Box>
+          </CardContent>
+        </Card>
       </Container>
       <Footer />
     </Box>
