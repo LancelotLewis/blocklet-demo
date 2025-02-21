@@ -1,9 +1,21 @@
 import DID from '@arcblock/ux/lib/DID';
 import InfoRow from '@arcblock/ux/lib/InfoRow';
 import Tag from '@arcblock/ux/lib/Tag';
+import { CheckoutDonate, DonateProvider, PaymentProvider } from '@blocklet/payment-react';
 import { Footer, Header } from '@blocklet/ui-react';
 import { Icon } from '@iconify/react';
-import { Avatar, Box, Button, Card, CardContent, CardHeader, Container, IconButton, Tooltip } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Container,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
 import { uniqBy } from 'lodash-es';
 import { useEffect, useState } from 'react';
 
@@ -12,7 +24,7 @@ import { useSessionContext } from '../libs/session';
 import { formatToDatetime } from '../libs/utils';
 
 function Home() {
-  const { session } = useSessionContext();
+  const { session, connectApi } = useSessionContext();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -133,6 +145,31 @@ function Home() {
               </Button>
             )}
           </CardContent>
+          {session?.user ? (
+            <CardActions>
+              <PaymentProvider session={session} connect={connectApi}>
+                <DonateProvider
+                  mountLocation="blocklet-demo"
+                  description="Donate developer of the blocklet"
+                  enableDonate>
+                  <CheckoutDonate
+                    settings={{
+                      target: 'donation-demo',
+                      title: 'Donation Demo',
+                      description: 'Just a demo for donation',
+                      reference: window.location.href,
+                      beneficiaries: [
+                        {
+                          address: window.blocklet.appPid,
+                          share: '100',
+                        },
+                      ],
+                    }}
+                  />
+                </DonateProvider>
+              </PaymentProvider>
+            </CardActions>
+          ) : null}
         </Card>
       </Container>
       <Footer />
